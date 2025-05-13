@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>달력</title>
+  <title>날짜 선택 달력</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 40px;
+      padding: 20px;
     }
 
     #calendar {
@@ -27,19 +27,27 @@
       height: 50px;
       border: 1px solid #ccc;
       vertical-align: middle;
+      cursor: pointer;
     }
 
     #calendar th {
       background-color: #f2f2f2;
     }
 
-    #calendar td {
-      background-color: #fff;
+    #calendar td:hover {
+      background-color: #e0f7fa;
     }
 
-    #calendar td.today {
-      background-color: #ffeb3b;
+    #calendar td.selected {
+      background-color: #4caf50;
+      color: white;
       font-weight: bold;
+    }
+
+    #selected-date {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
     }
   </style>
 </head>
@@ -49,17 +57,13 @@
     <caption></caption>
     <thead>
       <tr>
-        <th>일</th>
-        <th>월</th>
-        <th>화</th>
-        <th>수</th>
-        <th>목</th>
-        <th>금</th>
-        <th>토</th>
+        <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
+
+  <div id="selected-date">선택된 날짜: 없음</div>
 
   <script>
     const today = new Date();
@@ -73,7 +77,8 @@
     caption.textContent = `${year}년 ${month + 1}월`;
 
     const tbody = document.querySelector("#calendar tbody");
-    tbody.innerHTML = "";
+    const selectedDateDisplay = document.getElementById("selected-date");
+    let selectedCell = null;
 
     let row = document.createElement("tr");
 
@@ -85,14 +90,15 @@
       const cell = document.createElement("td");
       cell.textContent = date;
 
-      // 오늘 날짜 표시
-      if (
-        date === today.getDate() &&
-        year === today.getFullYear() &&
-        month === today.getMonth()
-      ) {
-        cell.classList.add("today");
-      }
+      cell.addEventListener("click", () => {
+        if (selectedCell) {
+          selectedCell.classList.remove("selected");
+        }
+        cell.classList.add("selected");
+        selectedCell = cell;
+
+        selectedDateDisplay.textContent = `선택된 날짜: ${year}년 ${month + 1}월 ${date}일`;
+      });
 
       row.appendChild(cell);
 
