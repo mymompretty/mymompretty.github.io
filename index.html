@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>일정 표시 달력</title>
+  <title>달력</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -45,12 +45,10 @@
       background-color: #f2f2f2;
     }
 
-    /* 토요일, 일요일 배경 연한 빨강 */
     .sunday, .saturday {
       background-color: #ffe5e5;
     }
 
-    /* 일정 있는 날 배경 연한 파랑 */
     .has-event {
       background-color: #d0eaff !important;
     }
@@ -83,6 +81,12 @@
       margin-top: 20px;
       font-size: 18px;
       color: #333;
+      white-space: pre-line;
+    }
+
+    #event-display a {
+      color: blue;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -115,36 +119,32 @@
     const eventDisplay = document.getElementById("event-display");
     let selectedCell = null;
 
-    // 일정 데이터 (key: "MM-DD")
     const scheduleMap = {
-  "05-23": [
-    "수학 수행평가(구술&마인드맵)",
-    "역사일기 수행평가"
-  ],
-  "05-26": [
-    "수학 수행평가(구술&마인드맵)",
-    "역사일기 수행평가"
-  ],
-  "05-27": [
-    "수학 수행평가(구술&마인드맵)",
-    "역사일기 수행평가"
-    ],
-  "05-19": ["역사일기 수행평가"],
-  "05-20": ["역사일기 수행평가"],
-  "05-21": ["역사일기 수행평가"],
-  "05-22": ["역사일기 수행평가"],
-
-  "06-02": ["수학 수행평가(독서)"],
-  "06-03": ["수학 수행평가(독서)"],
-  "06-04": ["6월 모의고사"],
-  "06-05": ["수학 수행평가(독서)"],
-
-  "06-24": ["기말고사"],
-  "06-25": ["기말고사"],
-  "06-26": ["기말고사"],
-  "06-27": ["기말고사"],
-};
-
+      "05-23": [
+        "수학 수행평가(구술&마인드맵)",
+        "역사일기 수행평가"
+      ],
+      "05-26": [
+        "수학 수행평가(구술&마인드맵)",
+        "역사일기 수행평가"
+      ],
+      "05-27": [
+        "수학 수행평가(구술&마인드맵)",
+        "역사일기 수행평가"
+      ],
+      "05-19": ["역사일기 수행평가"],
+      "05-20": ["역사일기 수행평가"],
+      "05-21": ["역사일기 수행평가"],
+      "05-22": ["역사일기 수행평가"],
+      "06-02": ["수학 수행평가(독서)"],
+      "06-03": ["수학 수행평가(독서)"],
+      "06-04": ["6월 모의고사"],
+      "06-05": ["수학 수행평가(독서)"],
+      "06-24": ["기말고사"],
+      "06-25": ["기말고사"],
+      "06-26": ["기말고사"],
+      "06-27": ["기말고사"],
+    };
 
     function generateCalendar(year, month) {
       currentYear = year;
@@ -165,18 +165,15 @@
         const cell = document.createElement("td");
         cell.textContent = date;
 
-        // 요일 계산 (0: 일요일, 6: 토요일)
         const dayOfWeek = (firstDay + date - 1) % 7;
         if (dayOfWeek === 0) cell.classList.add("sunday");
         if (dayOfWeek === 6) cell.classList.add("saturday");
 
-        // 일정 있는 날은 파랑 배경 클래스 추가
         const key = `${(month + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
         if (scheduleMap[key]) {
           cell.classList.add("has-event");
         }
 
-        // 오늘 날짜 표시
         if (
           year === today.getFullYear() &&
           month === today.getMonth() &&
@@ -185,17 +182,21 @@
           cell.classList.add("today");
         }
 
-        // 클릭 이벤트
         cell.addEventListener("click", () => {
           if (selectedCell) selectedCell.classList.remove("selected");
           cell.classList.add("selected");
           selectedCell = cell;
 
-          const eventText = scheduleMap[key]
-            ? `${year}년 ${month + 1}월 ${date}일 - ${scheduleMap[key]}`
-            : `${year}년 ${month + 1}월 ${date}일 - 일정 없음`;
+          const events = scheduleMap[key] || [];
+          const formattedEvents = events.map(event => {
+            if (event.includes("수학 수행평가")) {
+              return `<a href="https://mymompretty.github.io/test.github.io/" target="_blank">${event}</a>`;
+            } else {
+              return event;
+            }
+          }).join("<br>");
 
-          eventDisplay.textContent = ` ${eventText}`;
+          eventDisplay.innerHTML = `${year}년 ${month + 1}월 ${date}일<br>${formattedEvents || "일정 없음"}`;
         });
 
         row.appendChild(cell);
