@@ -84,9 +84,12 @@
       white-space: pre-line;
     }
 
-    #event-display a {
-      color: blue;
+    a.event-link {
+      display: block;
+      margin: 5px 0;
+      color: #007bff;
       text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -187,16 +190,21 @@
           cell.classList.add("selected");
           selectedCell = cell;
 
-          const events = scheduleMap[key] || [];
-          const formattedEvents = events.map(event => {
-            if (event.includes("수학 수행평가")) {
-              return `<a href="https://mymompretty.github.io/test.github.io/" target="_blank">${event}</a>`;
-            } else {
-              return event;
-            }
-          }).join("<br>");
-
-          eventDisplay.innerHTML = `${year}년 ${month + 1}월 ${date}일<br>${formattedEvents || "일정 없음"}`;
+          const events = scheduleMap[key];
+          if (events) {
+            eventDisplay.innerHTML = `${year}년 ${month + 1}월 ${date}일 일정:\n` + events.map(event => {
+              let url = '';
+              if (event.includes("수학")) url = 'https://mymompretty.github.io/test.github.io/';
+              if (event.includes("역사")) url = 'https://mymompretty.github.io/home.github.io/';
+              if (url) {
+                return `<a class="event-link" href="${url}" target="_blank">${event}</a>`;
+              } else {
+                return `<div>${event}</div>`;
+              }
+            }).join('');
+          } else {
+            eventDisplay.textContent = `${year}년 ${month + 1}월 ${date}일 - 일정 없음`;
+          }
         });
 
         row.appendChild(cell);
