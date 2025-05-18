@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>날짜 선택 달력</title>
+  <meta charset="UTF-8" />
+  <title>일정 표시 달력 (주말 빨강, 일정 파랑)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    .calendar-container {
+      display: inline-block;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
     #calendar {
-      display: inline-block;
       border-collapse: collapse;
-      width: 350px;
+      width: 100%;
+      margin-top: 10px;
     }
 
     #calendar caption {
@@ -28,14 +37,30 @@
       border: 1px solid #ccc;
       vertical-align: middle;
       cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
     }
 
     #calendar th {
       background-color: #f2f2f2;
     }
 
+    /* 토요일, 일요일 배경 연한 빨강 */
+    .sunday, .saturday {
+      background-color: #ffe5e5;
+    }
+
+    /* 일정 있는 날 배경 연한 파랑 */
+    .has-event {
+      background-color: #d0eaff !important;
+    }
+
     #calendar td:hover {
-      background-color: #e0f7fa;
+      background-color: #a8d5ff;
+    }
+
+    #calendar td.today {
+      border: 2px solid #4caf50;
     }
 
     #calendar td.selected {
@@ -44,7 +69,17 @@
       font-weight: bold;
     }
 
-    #selected-date {
+    .nav-buttons {
+      margin-bottom: 10px;
+    }
+
+    .nav-buttons button {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin: 0 5px;
+    }
+
+    #event-display {
       margin-top: 20px;
       font-size: 18px;
       color: #333;
@@ -53,60 +88,142 @@
 </head>
 <body>
 
-  <table id="calendar">
-    <caption></caption>
-    <thead>
-      <tr>
-        <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="calendar-container">
+    <div class="nav-buttons">
+      <button id="prevMonth">이전 달</button>
+      <button id="nextMonth">다음 달</button>
+    </div>
 
-  <div id="selected-date">선택된 날짜: 없음</div>
+    <table id="calendar">
+      <caption></caption>
+      <thead>
+        <tr>
+          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="event-display">선택된 날짜: 없음</div>
+  </div>
 
   <script>
+    let currentYear, currentMonth;
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-
-    const firstDay = new Date(year, month, 1).getDay();
-    const lastDate = new Date(year, month + 1, 0).getDate();
-
     const caption = document.querySelector("#calendar caption");
-    caption.textContent = `${year}년 ${month + 1}월`;
-
     const tbody = document.querySelector("#calendar tbody");
-    const selectedDateDisplay = document.getElementById("selected-date");
+    const eventDisplay = document.getElementById("event-display");
     let selectedCell = null;
 
-    let row = document.createElement("tr");
+    // 일정 데이터 (key: "MM-DD")
+    const scheduleMap = {
+  "05-23": [
+    "수학 수행평가(구술&마인드맵)",
+    "역사일기 수행평가"
+  ],
+  "05-26": [
+    "수학 수행평가(구술&마인드맵)",
+    "역사일기 수행평가"
+  ],
+  "05-27": [
+    "수학 수행평가(구술&마인드맵)",
+    "역사일기 수행평가"
+    ],
+  "05-19": ["역사일기 수행평가"],
+  "05-20": ["역사일기 수행평가"],
+  "05-21": ["역사일기 수행평가"],
+  "05-22": ["역사일기 수행평가"],
 
-    for (let i = 0; i < firstDay; i++) {
-      row.appendChild(document.createElement("td"));
-    }
+  "06-02": ["수학 수행평가(독서)"],
+  "06-03": ["수학 수행평가(독서)"],
+  "06-04": ["6월 모의고사"],
+  "06-05": ["수학 수행평가(독서)"],
 
-    for (let date = 1; date <= lastDate; date++) {
-      const cell = document.createElement("td");
-      cell.textContent = date;
+  "06-24": ["기말고사"],
+  "06-25": ["기말고사"],
+  "06-26": ["기말고사"],
+  "06-27": ["기말고사"],
+};
 
-      cell.addEventListener("click", () => {
-        if (selectedCell) {
-          selectedCell.classList.remove("selected");
+
+    function generateCalendar(year, month) {
+      currentYear = year;
+      currentMonth = month;
+      caption.textContent = `${year}년 ${month + 1}월`;
+      tbody.innerHTML = "";
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const lastDate = new Date(year, month + 1, 0).getDate();
+
+      let row = document.createElement("tr");
+
+      for (let i = 0; i < firstDay; i++) {
+        row.appendChild(document.createElement("td"));
+      }
+
+      for (let date = 1; date <= lastDate; date++) {
+        const cell = document.createElement("td");
+        cell.textContent = date;
+
+        // 요일 계산 (0: 일요일, 6: 토요일)
+        const dayOfWeek = (firstDay + date - 1) % 7;
+        if (dayOfWeek === 0) cell.classList.add("sunday");
+        if (dayOfWeek === 6) cell.classList.add("saturday");
+
+        // 일정 있는 날은 파랑 배경 클래스 추가
+        const key = `${(month + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
+        if (scheduleMap[key]) {
+          cell.classList.add("has-event");
         }
-        cell.classList.add("selected");
-        selectedCell = cell;
 
-        selectedDateDisplay.textContent = `선택된 날짜: ${year}년 ${month + 1}월 ${date}일`;
-      });
+        // 오늘 날짜 표시
+        if (
+          year === today.getFullYear() &&
+          month === today.getMonth() &&
+          date === today.getDate()
+        ) {
+          cell.classList.add("today");
+        }
 
-      row.appendChild(cell);
+        // 클릭 이벤트
+        cell.addEventListener("click", () => {
+          if (selectedCell) selectedCell.classList.remove("selected");
+          cell.classList.add("selected");
+          selectedCell = cell;
 
-      if ((firstDay + date) % 7 === 0 || date === lastDate) {
-        tbody.appendChild(row);
-        row = document.createElement("tr");
+          const eventText = scheduleMap[key]
+            ? `${year}년 ${month + 1}월 ${date}일 - ${scheduleMap[key]}`
+            : `${year}년 ${month + 1}월 ${date}일 - 일정 없음`;
+
+          eventDisplay.textContent = ` ${eventText}`;
+        });
+
+        row.appendChild(cell);
+
+        if ((firstDay + date) % 7 === 0 || date === lastDate) {
+          tbody.appendChild(row);
+          row = document.createElement("tr");
+        }
       }
     }
+
+    document.getElementById("prevMonth").addEventListener("click", () => {
+      if (currentMonth === 0) {
+        generateCalendar(currentYear - 1, 11);
+      } else {
+        generateCalendar(currentYear, currentMonth - 1);
+      }
+    });
+
+    document.getElementById("nextMonth").addEventListener("click", () => {
+      if (currentMonth === 11) {
+        generateCalendar(currentYear + 1, 0);
+      } else {
+        generateCalendar(currentYear, currentMonth + 1);
+      }
+    });
+
+    generateCalendar(today.getFullYear(), today.getMonth());
   </script>
 
 </body>
