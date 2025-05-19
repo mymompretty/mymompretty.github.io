@@ -123,18 +123,9 @@
     let selectedCell = null;
 
     const scheduleMap = {
-      "05-23": [
-        "수학 수행평가(구술&마인드맵)",
-        "역사일기 수행평가"
-      ],
-      "05-26": [
-        "수학 수행평가(구술&마인드맵)",
-        "역사일기 수행평가"
-      ],
-      "05-27": [
-        "수학 수행평가(구술&마인드맵)",
-        "역사일기 수행평가"
-      ],
+      "05-23": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
+      "05-26": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
+      "05-27": ["수학 수행평가(구술&마인드맵)", "역사일기 수행평가"],
       "05-19": ["역사일기 수행평가"],
       "05-20": ["역사일기 수행평가"],
       "05-21": ["역사일기 수행평가"],
@@ -196,6 +187,7 @@
               let url = '';
               if (event.includes("수학")) url = 'https://mymompretty.github.io/test.github.io/';
               if (event.includes("역사")) url = 'https://mymompretty.github.io/home.github.io/';
+              if (event.includes("모의고사")) url = 'https://mymompretty.github.io/kimch.github.io/';
               if (url) {
                 return `<a class="event-link" href="${url}" target="_blank">${event}</a>`;
               } else {
